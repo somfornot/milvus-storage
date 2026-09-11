@@ -14,7 +14,7 @@
 
 #include "milvus-storage/format/parquet/folly_arrow_executor.h"
 
-#include "tracing/runtime.h"
+#include "milvus-storage/tracing.h"
 
 #include <exception>
 #include <utility>
@@ -53,7 +53,7 @@ class FollyArrowExecutor final : public arrow::internal::Executor {
     try {
       executor_->add([context = context_, task = std::move(task), stop_token = std::move(stop_token),
                       stop_callback = std::move(stop_callback)]() mutable {
-        tracing::ContextScope scope(context);
+        auto scope = tracing::AttachContext(context);
         tracing::StartCurrent();
         if (!stop_token.IsStopRequested()) {
           std::move(task)();

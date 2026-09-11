@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#include "tracing/runtime.h"
+#include "milvus-storage/tracing.h"
 
 #include "milvus-storage/ffi_filesystem_c.h"
 
@@ -449,7 +449,7 @@ LoonFFIResult loon_filesystem_reader_readat_async(FileSystemReaderHandle handle,
     future.AddCallback([trace_context = tracing::Capture(), input_file, callback, user_data, nbytes,
                         offset](const arrow::Result<int64_t>& read_result) mutable noexcept {
       try {
-        tracing::ContextScope scope(trace_context);
+        auto scope = tracing::AttachContext(trace_context);
         (void)input_file;
         if (read_result.ok()) {
           auto bytes_read = read_result.ValueOrDie();

@@ -2,14 +2,13 @@
 // SPDX-FileCopyrightText: Copyright the Vortex contributors
 
 #include "vortex_bridge.h"
-#include "tracing/runtime.h"
+#include "milvus-storage/tracing.h"
 
 #include <optional>
 #include <string>
 #include <string_view>
 
 #include <arrow/record_batch.h>
-
 #include "bridge_util.h"
 
 namespace milvus_storage::vortex {
@@ -22,9 +21,8 @@ class VortexErrorTranslatingReader final : public arrow::RecordBatchReader {
   std::shared_ptr<arrow::Schema> schema() const override { return inner_->schema(); }
 
   arrow::Status ReadNext(std::shared_ptr<arrow::RecordBatch>* batch) override {
-    return tracing::Run("storage.format.read", [&] {
-      return MakeBridgeErrorStatus("Failed to read vortex record batch", inner_->ReadNext(batch));
-    });
+    tracing::TraceScope scope("storage.format.read");
+    return MakeBridgeErrorStatus("Failed to read vortex record batch", inner_->ReadNext(batch));
   }
 
   arrow::Status Close() override {
